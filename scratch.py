@@ -1,47 +1,55 @@
 ## Working with JSON data and Python
+# Here we will make a request to a JSONPlaceholder for dummy Json data
 
-import json, requests
+import json
+import requests # requests will utilized to make a call to API
 
+# Step1 - Make a call to API
 response = requests.get("https://jsonplaceholder.typicode.com/todos")
-todos1 = json.loads(response.text)
-## OR
-todos2 = response.json()
+# Step2 - Store text/json into variable. Can use response.text or response.json()
+todos = response.json()
 
-todos1 == todos2 ## True
-
-# Let us create a Dictionary of all users who completed All Tasks
+# Step3 - We will create a dictionary of users and the count of todos
 todos_by_users = {}
-
-for todo in todos1:
+for todo in todos:
     if todo["completed"]: # if True
         try:
             todos_by_users[todo["userId"]] += 1
-        except KeyError:  # user does not exist yet
+        except KeyError:
             todos_by_users[todo["userId"]] = 1
 
-# Sort List by users who completed All Tasks
-# SOrt by Descending. Default is Ascending
-# To sort a dictionary - use .items()
-users_who_complete = sorted(todos_by_users.items(), key=lambda x: x[1], reverse=True)
 
-max_number = users_who_complete[0][1] ## 12
+# Step4 - Return array of tuples in descending order
+    # Bc we are sorting a dictionary with key/value we will iterate over value by .items()
+    # Reverse=True will order in Descending. Highest to lowest
 
-# Return a list of only users who completed all
+todos_by_users_ordered = sorted(todos_by_users.items(), key=lambda x: x[1], reverse=True)
+
+# Step5 - Access the highest count. Ordered by descending order the first user will have the highest count
+max_count = todos_by_users_ordered[0][1]
+
+# Step6 - Make a list of all users who have the equal amount
 max_users = []
-
-# to iterate we have
-for user, num_complete in users_who_complete:
-    if num_complete < max_number:
-        break # break bc we sorted list in Descending ORder Highest number to Lowest Number
+for user, num_complete in todos_by_users_ordered:
+    if num_complete < max_count:
+        break
     max_users.append(str(user))
 
+#
+users = ' and '.join(max_users) # join index with and
 
-def keep(todo): # filter function to be used later on
-    is_complete = todo['completed']
-    has_max_count = str(todo['userId']) in max_users
-    return is_complete and has_max_count
+s = 's' if len(max_users) > 1 else ''
+users_sentence = f"user{s} {users} have completed all {max_count} tasks"
 
-# Write filtered function to JSON
+
+# Step7 - Turn into a JSON file
+# Step7a - Create a keep file that will return each individual completed task
+def keep(todo):
+    is_complete = todo["completed"] # True or False
+    user_complete = str(todo["userId"]) in max_users # if user is in users who completed all tasks
+    return is_complete and user_complete
+
+# Step7b- Write a json file. Use filter function!
 with open("filtered_data_file.json", "w") as data_file:
-    filtered_todos = list(filter(keep, todos1))
-    json.dump(filtered_todos, data_file, indent=2)
+    users_json = list(filter(keep, todos))
+    json.dump(users_json, data_file, indent=2)
