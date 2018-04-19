@@ -3,6 +3,7 @@
 
 import json
 import requests # requests will utilized to make a call to API
+from collections import defaultdict
 
 # Step1 - Make a call to API
 response = requests.get("https://jsonplaceholder.typicode.com/todos")
@@ -10,19 +11,14 @@ response = requests.get("https://jsonplaceholder.typicode.com/todos")
 todos = response.json()
 
 # Step3 - We will create a dictionary of users and the count of todos
-todos_by_users = {}
+todos_by_users = defaultdict(int)
 for todo in todos:
-    if todo["completed"]: # if True
-        try:
-            todos_by_users[todo["userId"]] += 1
-        except KeyError:
-            todos_by_users[todo["userId"]] = 1
+    todos_by_users[todo] += 1
 
 
 # Step4 - Return array of tuples in descending order
     # Bc we are sorting a dictionary with key/value we will iterate over value by .items()
     # Reverse=True will order in Descending. Highest to lowest
-
 todos_by_users_ordered = sorted(todos_by_users.items(), key=lambda x: x[1], reverse=True)
 
 # Step5 - Access the highest count. Ordered by descending order the first user will have the highest count
